@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">dataMonitor</string>
+    <string name="action_settings">Settings</string>
+    <string name="notification_subtitle">Data Monitor is going...</string>
+    <string name="BT_SERVICE_STATE_NONE">Bluetooth service is not started yet</string>
+    <string name="BT_SERVICE_MSG_STATE">Message is updated, but not changed</string>
+    <string name="BT_SERVICE_CONNECTED">Bluetooth Service connected</string>
+    <string name="BT_SERVICE_CONNECTING">Bluetooth service connecting</string>
+    <string name="BT_SERVICE_MSG_READ">Read data from RAFF </string>
+    <string name="BT_SERVICE_MSG_TOAST">Requist to toast msg from service</string>
+    <string name="BT_MSG_DEVICE_NAME">Device name</string>
+
+</resources>
