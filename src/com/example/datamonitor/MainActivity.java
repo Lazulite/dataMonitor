@@ -33,6 +33,8 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -71,13 +73,16 @@ public class MainActivity extends Activity implements OnClickListener{
 	//BT variables
 	private static final int REQUEST_CONNECT_DEVICE = 1;
 	private static final int REQUEST_ENABLE_BT = 2;
-    
+	private long timestamp=0;
+    private boolean firstBeat=false;
+    int counter=1;
     //Layout Views
 	private TextView mStatus,response;
     //File writer
     private File hRFile;
     private MyFileWriter myFileWriter = new MyFileWriter();
     
+    private WakeLock wakeLock;
     
     /*private Object[] activities = { 
     		"Compass",				Compass.class,
@@ -242,6 +247,10 @@ public class MainActivity extends Activity implements OnClickListener{
         } else {
             if (mBluetoothService == null)  status=true;
         }
+        
+        PowerManager mgr = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
+        wakeLock = mgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakeLock");
+        wakeLock.acquire();
        
     }
 	
@@ -284,6 +293,7 @@ public class MainActivity extends Activity implements OnClickListener{
         // Stop the Bluetooth chat services
         Intent intent = new Intent(this,MonitorService.class);
         stopService(intent);    
+        wakeLock.release();
         if (mBluetoothService != null) mBluetoothService.stop();
         Log.e(TAG, "--- ON DESTROY ---");
     }
@@ -362,13 +372,20 @@ public class MainActivity extends Activity implements OnClickListener{
             	 * of a HrmReading object from the bytes, and then display it into our view
             	 */
                 byte[] readBuf = (byte[]) msg.obj;
-                Date date= new Date();
-				String timestamp=String.valueOf(date.getTime());
+//                Date date= new Date();
+//				String timestamp=String.valueOf(date.getTime());
               
                 HrmReading hrm = new HrmReading( readBuf );
                 hrm.displayRaw();
-                myFileWriter.writeFile(hRFile, timestamp+","+String.valueOf(hrm.heartRate)+","+String.valueOf(hrm.heartBeatNumber)+","+String.valueOf(hrm.hbTime1));
-                
+                long hrv=hrm.hbTime1-hrm.hbTime2;
+                if(Math.abs(hrv)>60000){
+                	hrv=hrm.hbTime1+65535-hrm.hbTime2;
+                }
+              
+                myFileWriter.writeFile(hRFile, String.valueOf(hrm.hrmtimestamp)+","+String.valueOf(hrm.heartRate)+","+String.valueOf(hrv)+","+String.valueOf(timestamp));
+                if(firstBeat){
+              	  timestamp=timestamp+hrv;
+                }
                 break;
             }
                 
@@ -464,6 +481,8 @@ public class MainActivity extends Activity implements OnClickListener{
         long reserved5;
         byte crc;
         byte etx;*/
+        long hrmtimestamp;
+        
 
         public HrmReading (byte[] buffer) {
         	int bufferIndex = 0;
@@ -507,6 +526,11 @@ public class MainActivity extends Activity implements OnClickListener{
     			crc 				= buffer[bufferIndex++];
     			etx 				= buffer[bufferIndex];*/
     			littledump();
+    			if(!firstBeat && hbTime1!=0){
+    				firstBeat=true;
+    			}
+    			  Date date= new Date();
+    			  hrmtimestamp=date.getTime();
     			
     		} catch (Exception e) {
     	        Log.d(TAG, "Failure building HrmReading from byte buffer, probably an incopmplete or corrupted buffer");
