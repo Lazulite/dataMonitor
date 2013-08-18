@@ -367,7 +367,7 @@ public class MainActivity extends Activity implements OnClickListener{
               
                 HrmReading hrm = new HrmReading( readBuf );
                 hrm.displayRaw();
-                myFileWriter.writeFile(hRFile, timestamp+","+String.valueOf(hrm.heartRate)+String.valueOf(hrm.heartBeatNumber)+String.valueOf(hrm.hbTime1));
+                myFileWriter.writeFile(hRFile, timestamp+","+String.valueOf(hrm.heartRate)+","+String.valueOf(hrm.heartBeatNumber)+","+String.valueOf(hrm.hbTime1));
                 
                 break;
             }
@@ -519,7 +519,42 @@ public class MainActivity extends Activity implements OnClickListener{
         private void littledump(){
         	Log.d("data+hr", String.valueOf(heartRate));
 			Log.d("data+hrb", String.valueOf(heartBeatNumber));
-			Log.d("data+hr", String.valueOf(hbTime1));
+			
+			System.out.print(" HRB : "+String.valueOf(heartBeatNumber));
+			System.out.print(" HRV[1] : "+ String.valueOf(hbTime1));
+			System.out.print(" HRV[2] : "+ String.valueOf(hbTime2));
+			System.out.print(" HRV[3] : "+ String.valueOf(hbTime3));
+			System.out.print(" HRV[4] : "+ String.valueOf(hbTime4));
+			System.out.print(" HRV[5] : "+ String.valueOf(hbTime5));
+			System.out.print(" HRV[6] : "+ String.valueOf(hbTime6));
+			System.out.print(" HRV[7] : "+ String.valueOf(hbTime7));
+			System.out.print(" HRV[8] : "+ String.valueOf(hbTime8));
+			System.out.print(" HRV[9] : "+ String.valueOf(hbTime9));
+			System.out.print(" HRV[10] : "+ String.valueOf(hbTime10));
+			System.out.print(" HRV[11] : "+ String.valueOf(hbTime11));
+			System.out.print(" HRV[12] : "+ String.valueOf(hbTime12));
+			
+			System.out.print("HRV[13] : "+ String.valueOf(hbTime13));
+			System.out.print("HRV[14] : "+ String.valueOf(hbTime14));
+			System.out.println("HRV[15] : "+ String.valueOf(hbTime15));
+			
+			
+			/*Log.d("data+hr[1]", String.valueOf(hbTime1));
+			Log.d("data+hr[1]", String.valueOf(hbTime2));
+			Log.d("data+hr[1]", String.valueOf(hbTime3));
+			Log.d("data+hr[1]", String.valueOf(hbTime4));
+			Log.d("data+hr[1]", String.valueOf(hbTime5));
+			Log.d("data+hr[1]", String.valueOf(hbTime6));
+			Log.d("data+hr[1]", String.valueOf(hbTime7));
+			Log.d("data+hr", String.valueOf(hbTime8));
+			Log.d("data+hr[1]", String.valueOf(hbTime9));
+			Log.d("data+hr", String.valueOf(hbTime10));
+			Log.d("data+hr", String.valueOf(hbTime11));
+			Log.d("data+hr", String.valueOf(hbTime12));
+			Log.d("data+hr", String.valueOf(hbTime13));
+			Log.d("data+hr", String.valueOf(hbTime14));
+			Log.d("data+hr", String.valueOf(hbTime15));*/
+
         }
 
         
