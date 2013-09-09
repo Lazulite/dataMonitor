@@ -23,6 +23,7 @@ import com.example.datamonitor.jsonlib.*;
 import com.example.datamonitor.services.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -83,7 +84,8 @@ public class MainActivity extends Activity implements OnClickListener{
     private MyFileWriter myFileWriter = new MyFileWriter();
     
     private WakeLock wakeLock;
-    
+    private String mtoken=null;
+    private String newline = "\n";
     /*private Object[] activities = { 
     		"Compass",				Compass.class,
     		//"Orientation",			Orientation.class,
@@ -182,19 +184,29 @@ public class MainActivity extends Activity implements OnClickListener{
 				case R.id.b_login:
 					try {
 						
-					JSONObject json=new JSONObject();
+					JSONObject loginjson=new JSONObject();
 
-					json.put("loginid", "lei");
-					json.put("password", "northern");
-					json.put("expire_in_seconds", 999999999);
-	
-					Log.e("INPUTJSON",json.toString());
+					loginjson.put("loginid", "lei");
+					loginjson.put("password", "northern");
+					loginjson.put("expire_in_seconds", 999999999);
+					response.setText("Current user: " + "Lei" +newline );
+					Log.e("INPUTJSON",loginjson.toString());
 					
-					String logURL="http://wikihealth.bigdatapro.org:55555/healthbook/v1/users/gettoken?api_key=special-key";
 					
-					wikiUpload wiki=new wikiUpload( logURL, "POST",json, Loginid.class);
+					JSONObject tokentest=new JSONObject();
+
+					tokentest.put("accesstoken", "9715ac05997d42df803e7275b2a3ecd8");
+					//tokentest.put("targetid", "");
+					Log.e("INPUTJSON",tokentest.toString());
+					
+					
+					
+					String logURL="http://wikihealth.bigdatapro.org/api/#!/health/listALlHealthDatastreams_get_0";
+					wikiUpload wiki=new wikiUpload( logURL, "POST",loginjson, Loginid.class);
 					InputStream result;
+					Log.e("After post", "Before wiki.execute().get()");
 					result = wiki.execute().get();
+					Log.e("After post", "Before wiki.execute().get()");
 					/*BufferedReader reader = new BufferedReader(new InputStreamReader(result));
 			        String line;
 			        StringBuilder builder = new StringBuilder();
@@ -208,11 +220,15 @@ public class MainActivity extends Activity implements OnClickListener{
 					Gson gson=new Gson();
 					Reader reader = new InputStreamReader(result);
 					JsonParser parser = new JsonParser();
-				    JsonObject obj = parser.parse(reader).getAsJsonObject();			
+				    JsonObject obj = parser.parse(reader).getAsJsonObject();	
+				    Log.e("RESPONSE", "Before obj.toString()");
 				    Log.e("RESPONSE",obj.toString());
-					//LoginResponse loginResponse=gson.fromJson(obj.get("result"), LoginResponse.class);
-					//Log.e("RESPONSE",LoginResponse.gettoken());
-					//response.setText(loginResponse.gettoken());
+				    JsonObject usertoken = obj.get("usertoken").getAsJsonObject();
+				    Log.e("userToken is ", usertoken.toString());
+				    JsonElement token = usertoken.get("token");
+				    Log.e("Token is ", token.toString());
+				    mtoken=token.toString();
+					response.append("User Token:" + mtoken + newline);
 			       break;
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -383,6 +399,8 @@ public class MainActivity extends Activity implements OnClickListener{
                 }
               
                 myFileWriter.writeFile(hRFile, String.valueOf(hrm.hrmtimestamp)+","+String.valueOf(hrm.heartRate)+","+String.valueOf(hrv)+","+String.valueOf(timestamp));
+                //TODO decompose to wiki data structure
+                
                 if(firstBeat){
               	  timestamp=timestamp+hrv;
                 }
