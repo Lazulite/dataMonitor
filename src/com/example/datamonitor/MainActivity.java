@@ -8,8 +8,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.ResponseCache;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.text.SimpleDateFormat;
 import java.util.Set;
@@ -26,7 +29,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 
 
 import android.os.Bundle;
@@ -46,6 +52,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.database.DatabaseUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -86,6 +93,8 @@ public class MainActivity extends Activity implements OnClickListener{
     private WakeLock wakeLock;
     private String mtoken=null;
     private String newline = "\n";
+    private String rootURL="http://wikihealth.bigdatapro.org:55555/healthbook/v1/";
+    private List<String> unitids =new ArrayList<String>();
     /*private Object[] activities = { 
     		"Compass",				Compass.class,
     		//"Orientation",			Orientation.class,
@@ -93,10 +102,6 @@ public class MainActivity extends Activity implements OnClickListener{
     		//"Magnetic Field",		MagneticField.class,	
     		//"Temperature",			Temperature.class,
     };*/
-    
-    
-    //HTTP
-    private String baseURL = "http://wikihealth.bigdatapro.org/api/#!";
 
 
 	@Override
@@ -159,6 +164,109 @@ public class MainActivity extends Activity implements OnClickListener{
 					}
 					else{
 						hRFile=myFileWriter.createFile("HR");
+						/*{
+							  "datastream_id": "string",
+							  "title": "string",
+							  "tags": "string",
+							  "desc": "string",
+							  "owner": "string",
+							  "updated_time": "Date",
+							  "created_time": "Date",
+							  "total_units": 0,
+							  "total_blocks": 0,
+							  "units_list": [
+							    {
+							      "unit_id": "string",
+							      "unit_symbol": "string",
+							      "unit_label": "string",
+							      "value_type": "string"
+							    }
+							  ]
+							}
+						*/
+						
+						
+//
+//						try {
+//							JSONObject newDatastream = new JSONObject();
+//							JsonArray Unit = new JsonArray();
+//							
+//							newDatastream.put("datastream_id", "string");
+//							newDatastream.put("title", "heart_data");
+//							newDatastream.put("desc", "Heart Rate Varibility");
+//							newDatastream.put("owner", "lei");
+//							newDatastream.put("updated_time", "Data");
+//							newDatastream.put("created_time", "Data");
+//							newDatastream.put("total_units", 0);
+//							newDatastream.put("total_blocks", 0);
+//							newDatastream.put("units_list", Unit);
+//					
+//							Unit.add("unit_id", "string");
+//							Unit.
+//							
+//							newUnit.
+//						    JSONObject jsonObj= new JSONObject();
+//						    jsonObj.put("unit_id", "string");
+//						    jsonObj.put("unit_symbol", "string");
+//						    jsonObj.put("unit_label", "heart_rate");
+//						    jsonObj.put("unit_symbol", "string");
+//						    newUnit.push(jsonObj.toString());
+							
+//							response.setText("Current user: " + "Lei" +newline );
+//							Log.e("INPUTJSON",newDatastream.toString());
+//						} catch (JSONException e) {
+//							// TODO Auto-generated catch block
+//							e.printStackTrace();
+//						}
+						
+						try{
+							Gson gson = new Gson();
+							NewDatastream newDatastream = new NewDatastream("heart_data");
+							Unit newUnit = new Unit();
+							newUnit.setLabel("heart_rate");
+							newUnit.setValueType("float");							
+							newDatastream.addUnit(newUnit);
+							newUnit.setLabel("hrv");
+							newDatastream.addUnit(newUnit);
+							String newDT= gson.toJson(newDatastream);
+							//mtoken = URLEncoder.encode(mtoken).replace("\"", "");
+							
+							Log.e("Here!", mtoken);
+							String dtURL = rootURL+"health/title?accesstoken="+mtoken+"&api_key=special-key";  
+							Log.e("Here!", dtURL);
+							wikiUpload wiki=new wikiUpload( dtURL, "POST", newDT, null, Loginid.class);
+							InputStream result;
+							Log.e("After post", "Before wiki.execute().get()");
+							
+							result = wiki.execute().get();
+							
+							Log.e("After post", "Before wiki.execute().get()");
+
+							JsonReader reader = new JsonReader(new InputStreamReader(result));
+							reader.setLenient(true);
+							JsonParser parser = new JsonParser();
+							Log.e("RESPONSE", "before parsing json ");					
+						    JsonObject obj = parser.parse(reader).getAsJsonObject();	
+						    Log.e("RESPONSE", "Before obj.toString()");
+						    Log.e("RESPONSE",obj.toString());
+		   
+						    JsonObject dtresponse = obj.get("datastream").getAsJsonObject();
+						    JsonArray unitList = dtresponse.get("units_list").getAsJsonArray(); 
+						    for(int i = 0; i<unitList.size(); i++){
+							    JsonObject unitLabel = unitList.get(i).getAsJsonObject();
+							    String unit_id = unitLabel.get("unit_id").getAsString();
+							    Log.e("Unit label is ", unit_id);
+							    unitids.add(unit_id);
+								response.append("Unit Label: " + unit_id + newline);
+						    }
+							
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (ExecutionException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 						connectToHxM();
 					}						
 					status=false;
@@ -192,51 +300,56 @@ public class MainActivity extends Activity implements OnClickListener{
 					response.setText("Current user: " + "Lei" +newline );
 					Log.e("INPUTJSON",loginjson.toString());
 					
-					
-					JSONObject tokentest=new JSONObject();
+					Gson toJ=new Gson();
+					Loginid loginid = new Loginid("lei", "northern", 99999);
+					String login = toJ.toJson(loginid);
 
-					tokentest.put("accesstoken", "9715ac05997d42df803e7275b2a3ecd8");
-					//tokentest.put("targetid", "");
-					Log.e("INPUTJSON",tokentest.toString());
+					String logURL="http://wikihealth.bigdatapro.org:55555/healthbook/v1/users/gettoken?api_key=special-key";
+//					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);  
+//					nameValuePairs.add(new BasicNameValuePair("accesstoken", "b323b8a8ff6448128c7da7c7d21be233"));  
+//					nameValuePairs.add(new BasicNameValuePair("api_key", "special-key")); 
+					String unitURL="http://wikihealth.bigdatapro.org:55555/healthbook/v1/health/title/heart_rate/unit?accesstoken=b323b8a8ff6448128c7da7c7d21be233&api_key=special-key";
 					
-					
-					
-					String logURL="http://wikihealth.bigdatapro.org/api/#!/health/listALlHealthDatastreams_get_0";
-					wikiUpload wiki=new wikiUpload( logURL, "POST",loginjson, Loginid.class);
+					wikiUpload wiki=new wikiUpload( logURL, "POST", login, null, Loginid.class);
 					InputStream result;
 					Log.e("After post", "Before wiki.execute().get()");
 					result = wiki.execute().get();
 					Log.e("After post", "Before wiki.execute().get()");
-					/*BufferedReader reader = new BufferedReader(new InputStreamReader(result));
-			        String line;
-			        StringBuilder builder = new StringBuilder();
-			        while ((line = reader.readLine()) != null) {
-			          builder.append(line);
-			        }
-			        
-					Log.e("BUILDER",builder.toString());
-					response.setText(builder.toString());*/
+//					BufferedReader r = new BufferedReader(new InputStreamReader(result));
+//	        		StringBuilder total = new StringBuilder();
+//	        		String line;
+//	        		while ((line = r.readLine()) != null) {
+//	        		    total.append(line);
+//	        		}
+//	        		
+//	        		
+//	        		Log.e("RESULT!!!", total.toString());
+					//response.setText(builder.toString());*/
 					
 					Gson gson=new Gson();
-					Reader reader = new InputStreamReader(result);
+					JsonReader reader = new JsonReader(new InputStreamReader(result));
+					reader.setLenient(true);
 					JsonParser parser = new JsonParser();
+					Log.e("RESPONSE", "before parsing json ");					
 				    JsonObject obj = parser.parse(reader).getAsJsonObject();	
 				    Log.e("RESPONSE", "Before obj.toString()");
 				    Log.e("RESPONSE",obj.toString());
+   
 				    JsonObject usertoken = obj.get("usertoken").getAsJsonObject();
 				    Log.e("userToken is ", usertoken.toString());
-				    JsonElement token = usertoken.get("token");
-				    Log.e("Token is ", token.toString());
-				    mtoken=token.toString();
+				    mtoken = usertoken.get("token").getAsString();
+				    Log.e("Token is ", mtoken);
 					response.append("User Token:" + mtoken + newline);
 			       break;
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
+					Log.e("Exception", "InterruptedException");
 					e.printStackTrace();
 				} catch (ExecutionException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}catch(JSONException e){
+					Log.e("Exception", "JSONException");
 					e.printStackTrace();
 				}
 					

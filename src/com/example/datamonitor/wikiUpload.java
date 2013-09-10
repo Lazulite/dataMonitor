@@ -1,10 +1,12 @@
 package com.example.datamonitor;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import com.example.datamonitor.jsonlib.*;
@@ -14,8 +16,12 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
@@ -31,51 +37,60 @@ import android.util.Log;
 
 public class wikiUpload extends AsyncTask<String, Void, InputStream>{
 	
-    private JSONObject jsonParams=null;
     private String method=null;
     private String URL=null;
     private InputStream is = null;
 	private Reader reader = null;
 	private Class<?> obj,rlt;
 	private Handler mhttpHandler;
+	private List<NameValuePair> paras;
+	private String jobj=null;
 	
 	private static final String TAG = "HttpClient";
-    
-    public wikiUpload(String _url, String _method, JSONObject _jsonObj, Class<?>_obj) {
+	
+    public wikiUpload(String _url, String _method, String _jobj , List<NameValuePair> _paras, Class<?>_obj) {
         URL=_url;
         method=_method;
-        jsonParams=_jsonObj;
+        jobj = _jobj;
         obj=_obj;
+        paras=_paras;
     }
     @Override
-    protected InputStream doInBackground(String... params) {
+    protected InputStream doInBackground(String... param) {
 
         try {
         	if(method.equals("POST")){
 
         		DefaultHttpClient httpclient = new DefaultHttpClient();
         		HttpPost httpPostRequest = new HttpPost(URL);
-
-        		StringEntity se = new StringEntity(jsonParams.toString());
-
-        		// Set HTTP parameters
-        		httpPostRequest.setEntity(se);
         		httpPostRequest.setHeader("Accept", "application/json");
         		httpPostRequest.setHeader("Content-type", "application/json");
+        		// Set HTTP parameters
+        		StringEntity se = new StringEntity(jobj);
+      			httpPostRequest.setEntity(se);
+        		//Reader reader = new InputStreamReader(httpPostRequest.getEntity().getContent());
+        		
+//        		BufferedReader r = new BufferedReader(new InputStreamReader(httpPostRequest.getEntity().getContent()));
+//        		StringBuilder total = new StringBuilder();
+//        		String line;
+//        		while ((line = r.readLine()) != null) {
+//        		    total.append(line);
+//        		}   		
+//        		Log.e("In post", total.toString());
 		
         		HttpResponse response = (HttpResponse) httpclient.execute(httpPostRequest);
         		is = response.getEntity().getContent();
 
         	}else if(method == "GET"){
             // request method is GET
-            /*DefaultHttpClient httpClient = new DefaultHttpClient();
-            String paramString = URLEncodedUtils.format(postparams, "utf-8");
-            url += "?" + paramString;
-            HttpGet httpGet = new HttpGet(url);
-
-            HttpResponse httpResponse = httpClient.execute(httpGet);
-            HttpEntity httpEntity = httpResponse.getEntity();
-            is = httpEntity.getContent();*/
+	            DefaultHttpClient httpClient = new DefaultHttpClient();
+	            String paramString = URLEncodedUtils.format(paras, "utf-8");
+	            URL += "?" + paramString;
+	            HttpGet httpGet = new HttpGet(URL);
+	
+	            HttpResponse httpResponse = httpClient.execute(httpGet);
+	            HttpEntity httpEntity = httpResponse.getEntity();
+	            is = httpEntity.getContent();
         	}           
 
         } catch (UnsupportedEncodingException e) {

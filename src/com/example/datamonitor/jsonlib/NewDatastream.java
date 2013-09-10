@@ -1,6 +1,7 @@
 package com.example.datamonitor.jsonlib;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.example.datamonitor.R.string;
@@ -26,16 +27,23 @@ import com.example.datamonitor.R.string;
 	  ]
 	}
 */
-public class Title {
-	public String dataStream_id;
+public class NewDatastream {
+	public String dataStream_id = "string";
 	public String title;
-	public String tags;
-	public String desc;
-	public String owner;
+	public String tags= "string";
+	public String desc= "string";
+	public String owner= "string";
 	public Date updated_timeDate;
 	public Date created_time;
-	public int total_units;
-	public int total_bloacks;
-	public List<Unit> units_list;
+	public int total_units = 0;
+	public int total_bloacks =0;
+	public List<Unit> units_list = new ArrayList<Unit>(); 
+	public NewDatastream(String title){
+		this.title=title;
+	}
+	
+	public void addUnit(Unit newunit){
+		units_list.add(newunit);
+	}
 	
 }
