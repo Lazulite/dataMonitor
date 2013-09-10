@@ -42,6 +42,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.R.integer;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -226,8 +227,10 @@ public class MainActivity extends Activity implements OnClickListener{
 							newUnit.setLabel("heart_rate");
 							newUnit.setValueType("float");							
 							newDatastream.addUnit(newUnit);
-							newUnit.setLabel("hrv");
-							newDatastream.addUnit(newUnit);
+							Unit newUnit2 = new Unit();
+							newUnit2.setLabel("hrv");
+							newUnit2.setValueType("float");		
+							newDatastream.addUnit(newUnit2);
 							String newDT= gson.toJson(newDatastream);
 							//mtoken = URLEncoder.encode(mtoken).replace("\"", "");
 							
@@ -513,6 +516,52 @@ public class MainActivity extends Activity implements OnClickListener{
               
                 myFileWriter.writeFile(hRFile, String.valueOf(hrm.hrmtimestamp)+","+String.valueOf(hrm.heartRate)+","+String.valueOf(hrv)+","+String.valueOf(timestamp));
                 //TODO decompose to wiki data structure
+                try{
+                	for(int i=0; i<2;i++){
+						Gson gson = new Gson();
+						Value v;
+						if(i==0){
+							v = new Value(unitids.get(0), (double)hrm.heartRate, "string");
+						}else{
+							v = new Value(unitids.get(1), (double)hrv, "string");
+						}
+						Datapoints newdp= new Datapoints(timestamp, "string");
+						newdp.addValueList(v);
+						Datapoint newDatapoint = new Datapoint();
+						newDatapoint.adddp(newdp);
+						
+						String newDP= gson.toJson(newDatapoint);
+	
+						Log.e("Here!", mtoken);
+						String hrURL = rootURL+"health/title/"+"heart_data/datapoints?accesstoken="+mtoken+"&api_key=special-key";  
+						Log.e("Here!", hrURL);
+						wikiUpload wiki=new wikiUpload( hrURL, "POST", newDP, null, Loginid.class);
+						InputStream result;
+						Log.e("After post", "Before wiki.execute().get()");
+						
+						result = wiki.execute().get();
+	
+						JsonReader reader = new JsonReader(new InputStreamReader(result));
+						reader.setLenient(true);
+						JsonParser parser = new JsonParser();
+						Log.e("RESPONSE", "before parsing json ");					
+					    JsonObject obj = parser.parse(reader).getAsJsonObject();	
+					    Log.e("RESPONSE", "Before obj.toString()");
+					    Log.e("RESPONSE",obj.toString());
+					    if(i==0){
+					    	response.append("Heart Rate update : " +obj.get("result").getAsString()+newline);
+					    }else{
+					    	response.append("HRV update : " +obj.get("result").getAsString()+newline);
+					    }
+                	}
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                
                 
                 if(firstBeat){
               	  timestamp=timestamp+hrv;
