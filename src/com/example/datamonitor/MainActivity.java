@@ -54,13 +54,19 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.database.DatabaseUtils;
+import android.text.method.ScrollingMovementMethod;
+import android.text.style.ReplacementSpan;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
+import android.view.View.OnTouchListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -84,7 +90,6 @@ public class MainActivity extends Activity implements OnClickListener{
 	private static final int REQUEST_ENABLE_BT = 2;
 	private long timestamp=0;
     private boolean firstBeat=false;
-    int counter=1;
     //Layout Views
 	private TextView mStatus,response;
     //File writer
@@ -93,9 +98,14 @@ public class MainActivity extends Activity implements OnClickListener{
     
     private WakeLock wakeLock;
     private String mtoken=null;
+    private String mBlockid=null;
     private String newline = "\n";
     private String rootURL="http://wikihealth.bigdatapro.org:55555/healthbook/v1/";
     private List<String> unitids =new ArrayList<String>();
+    
+    private EditText actionTag;
+    private EditText targetFile;
+    private int counter=0;
     /*private Object[] activities = { 
     		"Compass",				Compass.class,
     		//"Orientation",			Orientation.class,
@@ -111,17 +121,31 @@ public class MainActivity extends Activity implements OnClickListener{
 		
 		setContentView(R.layout.activity_main);
 		
-		EditText actionTag = (EditText) findViewById(R.id.actiontag);
-		EditText targetFile = (EditText) findViewById(R.id.filename);
+		actionTag = (EditText) findViewById(R.id.actiontag);
+		targetFile = (EditText) findViewById(R.id.filename);
 		mStatus = (TextView) findViewById(R.id.btstatus);
 		response = (TextView) findViewById(R.id.Response);
-		
+		response.setMovementMethod(new ScrollingMovementMethod());
 		Button HRon = (Button) findViewById(R.id.b_HROn);
 		Button strt = (Button) findViewById(R.id.b_start);
 		Button stop = (Button) findViewById(R.id.b_stop);
 		Button login = (Button) findViewById(R.id.b_login);
 		Button post = (Button) findViewById(R.id.b_post);
 		Button postall = (Button) findViewById(R.id.b_postall);
+
+		
+//		final ScrollView scroller = (ScrollView) findViewById(R.id.scroller);
+//	    scroller.setOnFocusChangeListener(new OnFocusChangeListener() {
+//			
+//			@Override
+//			public void onFocusChange(View v, boolean hasFocus) {
+//				// TODO Auto-generated method stub
+//				if (hasFocus) {
+//	                scroller.fullScroll(View.FOCUS_DOWN);
+//	            }
+//				
+//			}
+//		});
 		
 		HRon.setOnClickListener(this);
 		strt.setOnClickListener(this);
@@ -165,60 +189,7 @@ public class MainActivity extends Activity implements OnClickListener{
 					}
 					else{
 						hRFile=myFileWriter.createFile("HR");
-						/*{
-							  "datastream_id": "string",
-							  "title": "string",
-							  "tags": "string",
-							  "desc": "string",
-							  "owner": "string",
-							  "updated_time": "Date",
-							  "created_time": "Date",
-							  "total_units": 0,
-							  "total_blocks": 0,
-							  "units_list": [
-							    {
-							      "unit_id": "string",
-							      "unit_symbol": "string",
-							      "unit_label": "string",
-							      "value_type": "string"
-							    }
-							  ]
-							}
-						*/
 						
-						
-//
-//						try {
-//							JSONObject newDatastream = new JSONObject();
-//							JsonArray Unit = new JsonArray();
-//							
-//							newDatastream.put("datastream_id", "string");
-//							newDatastream.put("title", "heart_data");
-//							newDatastream.put("desc", "Heart Rate Varibility");
-//							newDatastream.put("owner", "lei");
-//							newDatastream.put("updated_time", "Data");
-//							newDatastream.put("created_time", "Data");
-//							newDatastream.put("total_units", 0);
-//							newDatastream.put("total_blocks", 0);
-//							newDatastream.put("units_list", Unit);
-//					
-//							Unit.add("unit_id", "string");
-//							Unit.
-//							
-//							newUnit.
-//						    JSONObject jsonObj= new JSONObject();
-//						    jsonObj.put("unit_id", "string");
-//						    jsonObj.put("unit_symbol", "string");
-//						    jsonObj.put("unit_label", "heart_rate");
-//						    jsonObj.put("unit_symbol", "string");
-//						    newUnit.push(jsonObj.toString());
-							
-//							response.setText("Current user: " + "Lei" +newline );
-//							Log.e("INPUTJSON",newDatastream.toString());
-//						} catch (JSONException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						}
 						
 						try{
 							Gson gson = new Gson();
@@ -262,7 +233,39 @@ public class MainActivity extends Activity implements OnClickListener{
 							    unitids.add(unit_id);
 								response.append("Unit Label: " + unit_id + newline);
 						    }
+						    
+						    Log.e("BLOCKID", actionTag.getText().toString());
+						    if(actionTag.getText().toString()!=""){
+						    	Blockid newblock = new Blockid();
+						    	newblock.setBlockname(actionTag.getText().toString());
+						    	String block = gson.toJson(newblock);
+						    	String blkURL = rootURL+"health/title/heart_data/datablocks?accesstoken="+mtoken+"&api_key=special-key";
+						    	wiki=new wikiUpload( blkURL, "POST", block, null, Loginid.class);
+								Log.e("After post", "Before wiki.execute().get()");
+								
+								result = wiki.execute().get();
+								
+								Log.e("After post", "Before wiki.execute().get()");
+
+								reader = new JsonReader(new InputStreamReader(result));
+								reader.setLenient(true);
+								parser = new JsonParser();
+								Log.e("RESPONSE", "before parsing json ");					
+							    obj = parser.parse(reader).getAsJsonObject();	
+							    Log.e("RESPONSE", "Before obj.toString()");
+							    Log.e("RESPONSE",obj.toString());
+							    JsonObject jaArray = obj.get("datastream_block").getAsJsonObject();
+							    
+							    mBlockid=jaArray.get("blockid").getAsString();
+							    
+							    response.append("Block Update " + obj.get("result").toString() + newline);
+							    response.append("Block name " + actionTag.getText().toString() + newline);
+
+						    }
 							
+						    
+						    
+						    
 						} catch (InterruptedException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -360,7 +363,44 @@ public class MainActivity extends Activity implements OnClickListener{
 					//post();
 					break;
 				case R.id.b_postall:
-					//postall();
+					try {
+						Log.e("In delete title", "Delete Title");
+						String dltTitle="http://wikihealth.bigdatapro.org:55555/healthbook/v1/health/title/heart_rate/unit?accesstoken="+mtoken+"&api_key=special-key";
+						
+						wikiUpload wiki=new wikiUpload( dltTitle, "GET", null, null, Loginid.class);
+						InputStream result;
+						Log.e("After post", "Before wiki.execute().get()");
+					
+						result = wiki.execute().get();
+						
+//						Gson gson=new Gson();
+//						JsonReader reader = new JsonReader(new InputStreamReader(result));
+//						reader.setLenient(true);
+//						JsonParser parser = new JsonParser();
+//						Log.e("RESPONSE", "before parsing json ");					
+//					    JsonObject obj = parser.parse(reader).getAsJsonObject();	
+//					    Log.e("RESPONSE", "Before obj.toString()");
+//					    Log.e("RESPONSE",obj.toString());
+						//Reader reader = new InputStreamReader(result);
+		        		
+		        		BufferedReader r = new BufferedReader(new InputStreamReader(result));
+		        		StringBuilder total = new StringBuilder();
+		        		String line;
+		        		while ((line = r.readLine()) != null) {
+		        		    total.append(line);
+		        		}   		
+		        		Log.e("In post", total.toString());
+						
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (ExecutionException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					break;
 			}
 			
@@ -534,6 +574,9 @@ public class MainActivity extends Activity implements OnClickListener{
 	
 						Log.e("Here!", mtoken);
 						String hrURL = rootURL+"health/title/"+"heart_data/datapoints?accesstoken="+mtoken+"&api_key=special-key";  
+						if(actionTag.getText().toString()!=""){
+							hrURL = rootURL+"health/title/"+"heart_data/datapoints?accesstoken="+mtoken+"&blockid="+mBlockid+"&api_key=special-key";  
+						}
 						Log.e("Here!", hrURL);
 						wikiUpload wiki=new wikiUpload( hrURL, "POST", newDP, null, Loginid.class);
 						InputStream result;
@@ -549,9 +592,9 @@ public class MainActivity extends Activity implements OnClickListener{
 					    Log.e("RESPONSE", "Before obj.toString()");
 					    Log.e("RESPONSE",obj.toString());
 					    if(i==0){
-					    	response.append("Heart Rate update : " +obj.get("result").getAsString()+newline);
+					    	response.append("["+counter+"th]Heart Rate update : " +obj.get("result").getAsString()+newline);
 					    }else{
-					    	response.append("HRV update : " +obj.get("result").getAsString()+newline);
+					    	response.append("["+counter+"th]HRV update : " +obj.get("result").getAsString()+newline);
 					    }
                 	}
 				} catch (InterruptedException e) {
@@ -566,6 +609,7 @@ public class MainActivity extends Activity implements OnClickListener{
                 if(firstBeat){
               	  timestamp=timestamp+hrv;
                 }
+                counter++;
                 break;
             }
                 

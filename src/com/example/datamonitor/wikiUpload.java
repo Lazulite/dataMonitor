@@ -84,8 +84,10 @@ public class wikiUpload extends AsyncTask<String, Void, InputStream>{
         	}else if(method == "GET"){
             // request method is GET
 	            DefaultHttpClient httpClient = new DefaultHttpClient();
-	            String paramString = URLEncodedUtils.format(paras, "utf-8");
-	            URL += "?" + paramString;
+	            if(paras!=null)
+	            {	String paramString = URLEncodedUtils.format(paras, "utf-8");
+	            	URL += "?" + paramString;
+	            }
 	            HttpGet httpGet = new HttpGet(URL);
 	
 	            HttpResponse httpResponse = httpClient.execute(httpGet);

@@ -77,12 +77,12 @@
    	    android:text="Post" />
    	
 	<Button
-   	    android:id="@+id/b_postall"
-   	    android:layout_width="90dip"
-   	    android:layout_height="wrap_content"
-   	    android:layout_above="@+id/filename"
-   	    android:layout_alignRight="@+id/filename"
-   	    android:text="Postall" />
+	    android:id="@+id/b_postall"
+	    android:layout_width="90dip"
+	    android:layout_height="wrap_content"
+	    android:layout_above="@+id/filename"
+	    android:layout_alignRight="@+id/filename"
+	    android:text="Delete" />
 
    	<Button
    	    android:id="@+id/b_stop"
@@ -101,14 +101,7 @@
    	    android:layout_alignRight="@+id/digitalClock"
    	    android:ems="10"
    	    android:hint="Action Tag..." />
-
-   	<TextView
-   	    android:id="@+id/Response"
-   	    android:layout_width="wrap_content"
-   	    android:layout_height="wrap_content"
-   	    android:layout_alignLeft="@+id/HR_data"
-   	    android:layout_below="@+id/HR_data"
-   	    android:text="Response.." />
+   	
 
    	<TextView
    	    android:id="@+id/btstatus"
@@ -117,5 +110,29 @@
    	    android:layout_alignLeft="@+id/b_stop"
    	    android:layout_alignTop="@+id/HR_data"
    	    android:text="Initial..." />
+
+   <!-- 	<ScrollView
+   	    android:id="@+id/scroller"
+   	    android:layout_width="wrap_content"
+   	    android:layout_height="wrap_content"
+   	    android:layout_alignLeft="@+id/HR_data"
+   	    android:layout_below="@+id/HR_data" 
+   	     > -->
+
+   	    <TextView
+   	        android:id="@+id/Response"
+   	        android:layout_width="wrap_content"
+   	        android:layout_height="wrap_content"
+   	        android:layout_alignLeft="@+id/HR_data"
+   	        android:layout_below="@+id/HR_data"
+   	        android:ellipsize="marquee"
+   	        android:focusable="true"
+   	        android:focusableInTouchMode="true"
+   	        android:marqueeRepeatLimit="marquee_forever"
+   	        android:maxLines="16"
+   	        android:scrollbars="vertical"
+   	        android:gravity="bottom"
+   	        android:text="Response.." />
+<!--    	</ScrollView> -->
 
 </RelativeLayout>

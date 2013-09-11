@@ -27,7 +27,7 @@ public final class R {
     public static final class id {
         public static final int HR_data=0x7f080001;
         public static final int HR_title=0x7f080000;
-        public static final int Response=0x7f08000b;
+        public static final int Response=0x7f08000c;
         public static final int about=0x7f08000d;
         public static final int actiontag=0x7f080004;
         public static final int b_HROn=0x7f080009;
@@ -36,7 +36,7 @@ public final class R {
         public static final int b_postall=0x7f08000a;
         public static final int b_start=0x7f080008;
         public static final int b_stop=0x7f080005;
-        public static final int btstatus=0x7f08000c;
+        public static final int btstatus=0x7f08000b;
         public static final int digitalClock=0x7f080002;
         public static final int filename=0x7f080003;
         public static final int quit=0x7f08000e;
